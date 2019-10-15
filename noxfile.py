@@ -18,8 +18,17 @@ import nox
 
 ON_APPVEYOR = os.environ.get("APPVEYOR") == "True"
 
+travis_python_version = os.environ.get("TRAVIS_PYTHON_VERSION")
+if travis_python_version:
+    python = [travis_python_version]
+else:
+    python = ["3.5", "3.6", "3.7"]
 
-@nox.session(python=["3.5", "3.6", "3.7"])
+if travis_python_version and not nox.options.sessions:
+    nox.options.sessions = ["tests"]
+
+
+@nox.session(python=python)
 def tests(session):
     """Run test suite with pytest."""
     session.install("-r", "requirements-test.txt")
@@ -31,7 +40,7 @@ def tests(session):
     session.notify("cover")
 
 
-@nox.session(python=["3.5", "3.6", "3.7"], venv_backend="conda")
+@nox.session(python=python, venv_backend="conda")
 def conda_tests(session):
     """Run test suite with pytest."""
     session.conda_install(
